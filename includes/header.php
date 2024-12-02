@@ -10,9 +10,70 @@ require_once 'functions.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog System</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Google Font for clean typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav {
+            background-color: #006400; /* Dark Green Background */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border-bottom: 2px solid #fff;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .navbar-nav .nav-link {
+            color: #ddd !important;
+            font-size: 1.1rem;
+            margin: 0 15px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #fff !important;
+            border-bottom: 2px solid #fff;
+        }
+
+        .navbar-toggler-icon {
+            background-color: #fff;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .navbar-nav .nav-item.active .nav-link {
+            font-weight: 600;
+            color: #fff !important;
+            border-bottom: 2px solid #fff; /* Active link style */
+        }
+
+        /* Adjusting for smaller screens */
+        @media (max-width: 767px) {
+            .navbar-nav .nav-link {
+                margin-right: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark">
     <a class="navbar-brand" href="/index.php">Blog System</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -48,4 +109,13 @@ require_once 'functions.php';
         </ul>
     </div>
 </nav>
-<div class="container mt-4">
+
+<div class="container">
+    <!-- Content goes here -->
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
