@@ -24,7 +24,7 @@ require_once 'functions.php';
         }
 
         nav {
-            background-color: #006400; /* Dark Green Background */
+            background-color: #000; 
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             border-bottom: 2px solid #fff;
         }
