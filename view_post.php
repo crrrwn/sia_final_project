@@ -68,6 +68,28 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
                                 ORDER BY c.created_at DESC");
 ?>
 
+<style>
+    body {
+        background-color: #D4E6D5; /* Pale Clover */
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        margin: auto;
+        padding: 20px;
+    }
+    .card {
+        background-color: #ffffff;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .btn {
+        border-radius: 5px;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="card shadow-lg border-0 rounded-lg">
         <div class="card-body">
@@ -157,3 +179,4 @@ function cancelEdit(commentId) {
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+
