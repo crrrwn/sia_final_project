@@ -23,7 +23,7 @@ if (isset($_POST['confirm_logout']) && $_POST['confirm_logout'] === 'yes') {
         /* General Body Styling */
         body {
             font-family: 'Inter', sans-serif;
-            background: #f4f9f4; /* Light green background */
+            background: #D4E6D5;
             color: #333;
             display: flex;
             justify-content: center;
@@ -138,3 +138,4 @@ if (isset($_POST['confirm_logout']) && $_POST['confirm_logout'] === 'yes') {
 
 </body>
 </html>
+
