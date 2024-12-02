@@ -69,7 +69,7 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
 ?>
 
 <div class="container mt-4">
-    <div class="card">
+    <div class="card shadow-lg border-0 rounded-lg">
         <div class="card-body">
             <h1 class="card-title"><?php echo htmlspecialchars($post['title']); ?></h1>
             <p class="text-muted">
@@ -79,7 +79,12 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
             </p>
 
             <?php if ($post['image']): ?>
-                <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="img-fluid mb-3" style="max-height: 400px; width: 100%; object-fit: cover;">
+                <div class="text-center mb-3">
+                    <img src="<?php echo htmlspecialchars($post['image']); ?>" 
+                         alt="<?php echo htmlspecialchars($post['title']); ?>" 
+                         class="img-fluid" 
+                         style="max-height: 100%; width: auto;">
+                </div>
             <?php endif; ?>
 
             <div class="mb-4">
@@ -87,13 +92,13 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
             </div>
 
             <h3>Comments</h3>
-            
+
             <?php if (isset($_SESSION['user_id'])): ?>
                 <form method="post" class="mb-4">
                     <div class="form-group">
-                        <textarea name="comment" class="form-control" rows="3" required placeholder="Write your comment here..."></textarea>
+                        <textarea name="comment" class="form-control rounded-lg" rows="3" required placeholder="Write your comment here..."></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Submit Comment</button>
+                    <button type="submit" class="btn btn-primary rounded-lg">Submit Comment</button>
                 </form>
             <?php else: ?>
                 <p><a href="login.php">Login</a> to leave a comment.</p>
@@ -101,7 +106,7 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
 
             <div id="comments-section">
                 <?php while ($comment = mysqli_fetch_assoc($comments)): ?>
-                    <div class="card mb-3">
+                    <div class="card mb-3 shadow-sm rounded-lg" style="background-color: #f9f9f9;">
                         <div class="card-body">
                             <div class="comment-content-<?php echo $comment['id']; ?>">
                                 <?php echo nl2br(htmlspecialchars($comment['content'])); ?>
@@ -112,11 +117,11 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
                             </p>
                             <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $comment['user_id']): ?>
                                 <div class="btn-group">
-                                    <button onclick="editComment(<?php echo $comment['id']; ?>)" class="btn btn-sm btn-primary">Edit</button>
+                                    <button onclick="editComment(<?php echo $comment['id']; ?>)" class="btn btn-sm btn-primary rounded-lg">Edit</button>
                                     <form method="post" style="display: inline;">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="comment_id" value="<?php echo $comment['id']; ?>">
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this comment?')">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-danger rounded-lg" onclick="return confirm('Are you sure you want to delete this comment?')">Delete</button>
                                     </form>
                                 </div>
                                 <div id="edit-form-<?php echo $comment['id']; ?>" style="display: none;" class="mt-2">
@@ -124,10 +129,10 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
                                         <input type="hidden" name="action" value="edit">
                                         <input type="hidden" name="comment_id" value="<?php echo $comment['id']; ?>">
                                         <div class="form-group">
-                                            <textarea name="content" class="form-control" rows="3" required><?php echo htmlspecialchars($comment['content']); ?></textarea>
+                                            <textarea name="content" class="form-control rounded-lg" rows="3" required><?php echo htmlspecialchars($comment['content']); ?></textarea>
                                         </div>
-                                        <button type="submit" class="btn btn-sm btn-success">Save</button>
-                                        <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit(<?php echo $comment['id']; ?>)">Cancel</button>
+                                        <button type="submit" class="btn btn-sm btn-success rounded-lg">Save</button>
+                                        <button type="button" class="btn btn-sm btn-secondary rounded-lg" onclick="cancelEdit(<?php echo $comment['id']; ?>)">Cancel</button>
                                     </form>
                                 </div>
                             <?php endif; ?>
@@ -141,13 +146,11 @@ $comments = mysqli_query($conn, "SELECT c.*, u.username
 
 <script>
 function editComment(commentId) {
-    // Hide the comment content and show the edit form
     document.querySelector('.comment-content-' + commentId).style.display = 'none';
     document.querySelector('#edit-form-' + commentId).style.display = 'block';
 }
 
 function cancelEdit(commentId) {
-    // Show the comment content and hide the edit form
     document.querySelector('.comment-content-' + commentId).style.display = 'block';
     document.querySelector('#edit-form-' + commentId).style.display = 'none';
 }
