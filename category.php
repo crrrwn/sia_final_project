@@ -66,3 +66,4 @@ $category_name = mysqli_fetch_assoc(mysqli_query($conn, "SELECT name FROM catego
 </div>
 
 <?php require_once 'includes/footer.php'; ?>
+
