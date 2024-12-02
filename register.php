@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         /* Reuse the same styles */
         body {
             font-family: 'Inter', sans-serif;
-            background: #f4f9f4; /* Light green background */
+            background: #D4E6D5;
             color: #333;
             min-height: 100vh;
             display: flex;
@@ -201,3 +201,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </html>
 
 <?php require_once 'includes/footer.php'; ?>
+
