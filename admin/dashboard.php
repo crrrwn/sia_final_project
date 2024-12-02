@@ -37,7 +37,7 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
     <style>
         .dashboard-container {
             padding: 2rem;
-            background-color: #f8f9fa;
+            background-color: #D4E6D5;
         }
         .dashboard-card {
             background: white;
