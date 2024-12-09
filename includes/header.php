@@ -8,7 +8,7 @@ require_once 'functions.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog System</title>
+    <title>Builders/Pandayan</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Google Font for clean typography -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -32,9 +32,18 @@ require_once 'functions.php';
         .navbar-brand {
             font-size: 1.8rem;
             font-weight: 500;
-            color: #fff;
+            color: var(--brand-green) !important;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .navbar-brand img {
+                height: 30px;
+            }
+
+        .navbar-brand img {
+            height: 40px;
+            width: auto;
         }
 
         .navbar-nav .nav-link {
@@ -45,8 +54,8 @@ require_once 'functions.php';
         }
 
         .navbar-nav .nav-link:hover {
-            color: #fff !important;
-            border-bottom: 2px solid #fff;
+            color: var(--brand-green) !important;
+            border-bottom: 2px solid var(--brand-green);
         }
 
         .navbar-toggler-icon {
@@ -59,8 +68,8 @@ require_once 'functions.php';
 
         .navbar-nav .nav-item.active .nav-link {
             font-weight: 600;
-            color: #fff !important;
-            border-bottom: 2px solid #fff; /* Active link style */
+            color: var(--brand-green) !important;
+            border-bottom: 2px solid var(--brand-green);
         }
 
         /* Adjusting for smaller screens */
@@ -74,7 +83,7 @@ require_once 'functions.php';
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark">
-    <a class="navbar-brand" href="/index.php">Blog System</a>
+    <a class="navbar-brand" href="/index.php"><img src="/uploads/logobp.jpg" alt="Logo">Builders/Pandayan </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>

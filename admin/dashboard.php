@@ -31,43 +31,78 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Builders/Pandayan</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --dark-forest-green: #004040;
+            --sage-green: #669988;
+            --mint-green: #CCDDCC;
+            --white: #FFFFFF;
+        }
+
+        body {
+            background-color: var(--mint-green);
+            color: var(--dark-forest-green);
+            font-family: 'Montserrat', sans-serif;
+        }
+
         .dashboard-container {
             padding: 2rem;
-            background-color: #D4E6D5;
         }
+
         .dashboard-card {
-            background: white;
+            background: var(--white);
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 64, 64, 0.1);
             margin-bottom: 1.5rem;
             padding: 1.5rem;
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
+
         .dashboard-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 64, 64, 0.15);
         }
+
         .stats-card {
             text-align: center;
             padding: 1.5rem;
         }
+
         .stats-card h5 {
-            color: #6c757d;
+            color: var(--sage-green);
             font-size: 1rem;
             margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         .stats-number {
             font-size: 2.5rem;
             font-weight: bold;
-            color: #2c3e50;
+            color: var(--dark-forest-green);
         }
+
         .chart-container {
             position: relative;
             height: 400px;
             margin: 1rem 0;
+        }
+
+        h1, h5 {
+            color: var(--dark-forest-green);
+        }
+
+        .btn-primary {
+            background-color: var(--dark-forest-green);
+            border-color: var(--dark-forest-green);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--sage-green);
+            border-color: var(--sage-green);
         }
     </style>
 </head>
@@ -143,12 +178,23 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
                 labels: {
                     padding: 20,
                     font: {
-                        size: 12
-                    }
+                        size: 12,
+                        family: "'Montserrat', sans-serif"
+                    },
+                    color: '#004040'
                 }
             }
         }
     };
+
+    // Color palette
+    const colors = [
+        'rgba(0, 64, 64, 0.7)',   // Dark Forest Green
+        'rgba(102, 153, 136, 0.7)', // Sage Green
+        'rgba(204, 221, 204, 0.7)', // Mint Green
+        'rgba(0, 64, 64, 0.5)',   // Dark Forest Green (lighter)
+        'rgba(102, 153, 136, 0.5)', // Sage Green (lighter)
+    ];
 
     // Most Viewed Posts Chart
     new Chart(document.getElementById('viewsChart').getContext('2d'), {
@@ -166,8 +212,8 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
             datasets: [{
                 label: 'Views',
                 data: [<?php echo implode(',', $views); ?>],
-                backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: colors[0],
+                borderColor: colors[0],
                 borderWidth: 1
             }]
         },
@@ -178,13 +224,18 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
                 x: {
                     beginAtZero: true,
                     grid: {
-                        display: true,
-                        drawBorder: false
+                        color: 'rgba(0, 64, 64, 0.1)'
+                    },
+                    ticks: {
+                        color: '#004040'
                     }
                 },
                 y: {
                     grid: {
                         display: false
+                    },
+                    ticks: {
+                        color: '#004040'
                     }
                 }
             }
@@ -207,8 +258,8 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
             datasets: [{
                 label: 'Comments',
                 data: [<?php echo implode(',', $comments); ?>],
-                backgroundColor: 'rgba(153, 102, 255, 0.7)',
-                borderColor: 'rgba(153, 102, 255, 1)',
+                backgroundColor: colors[1],
+                borderColor: colors[1],
                 borderWidth: 1
             }]
         },
@@ -219,13 +270,18 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
                 x: {
                     beginAtZero: true,
                     grid: {
-                        display: true,
-                        drawBorder: false
+                        color: 'rgba(0, 64, 64, 0.1)'
+                    },
+                    ticks: {
+                        color: '#004040'
                     }
                 },
                 y: {
                     grid: {
                         display: false
+                    },
+                    ticks: {
+                        color: '#004040'
                     }
                 }
             }
@@ -247,26 +303,8 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
             ?>],
             datasets: [{
                 data: [<?php echo implode(',', $post_counts); ?>],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.7)',
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(255, 206, 86, 0.7)',
-                    'rgba(75, 192, 192, 0.7)',
-                    'rgba(153, 102, 255, 0.7)',
-                    'rgba(255, 159, 64, 0.7)',
-                    'rgba(201, 203, 207, 0.7)',
-                    'rgba(255, 145, 164, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(201, 203, 207, 1)',
-                    'rgba(255, 145, 164, 1)'
-                ],
+                backgroundColor: colors,
+                borderColor: colors.map(color => color.replace('0.7', '1')),
                 borderWidth: 1
             }]
         },
@@ -279,8 +317,10 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
                     labels: {
                         padding: 20,
                         font: {
-                            size: 12
-                        }
+                            size: 12,
+                            family: "'Montserrat', sans-serif"
+                        },
+                        color: '#004040'
                     }
                 }
             }
@@ -295,3 +335,4 @@ $posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_co
 </html>
 
 <?php require_once '../includes/footer.php'; ?>
+
