@@ -93,8 +93,8 @@ include 'includes/header.php';
 
     .post-image-container {
         width: 90%;
-        max-width: 900px;
-        margin: 1rem auto;
+        max-width: 600px;
+        margin: 2rem auto;
         text-align: center;
     }
 
@@ -112,6 +112,7 @@ include 'includes/header.php';
         padding: 0 1.5rem;
         font-size: 1.125rem;
         line-height: 1.8;
+        text-align: justify;
     }
 
     .post-content h2 {
@@ -123,6 +124,7 @@ include 'includes/header.php';
     .post-content p {
         margin-bottom: 1.5rem;
         color: var(--text-secondary);
+        text-indent: 1.5em;
     }
 
     .comments-section {
