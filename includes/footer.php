@@ -1,72 +1,97 @@
-<footer class="py-4" style="background-color: var(--dark-bg); color: #f0f0f0;">
+</main>
+    <footer>
+    <style>
+        footer {
+            background-color: #16423C;
+            color: #E9EFEC;
+            padding: calc(var(--spacing-unit) * 2) 0;
+            margin-top: calc(var(--spacing-unit) * 4);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-content p {
+            margin: 0;
+        }
+
+        .social-links {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 1.5);
+        }
+
+        .social-links a {
+            color: #C4DAD2;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            font-size: 1.5rem;
+        }
+
+        .social-links a:hover {
+            color: #E9EFEC;
+        }
+
+        .footer-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: var(--spacing-unit);
+        }
+
+        .logo-image {
+            width: 100px;
+            height: auto;
+            margin-bottom: calc(var(--spacing-unit) * 0.5);
+        }
+
+        .footer-logo p {
+            margin: 0;
+            text-align: center;
+        }
+
+        .footer-logo p:first-of-type {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: var(--spacing-unit);
+            }
+
+            .social-links {
+                margin-top: var(--spacing-unit);
+            }
+            .footer-logo {
+                margin-bottom: var(--spacing-unit);
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-4 text-center text-md-left mb-3 mb-md-0">
-                <img src="/uploads/logobp.jpg" alt="Builders/Pandayan Logo" class="footer-logo mb-2" style="height: 50px; width: auto;">
-                <h5 class="mb-0" style="font-size: 1.2rem; font-weight: 600;">Builders/Pandayan</h5>
-                <p class="mb-0" style="font-size: 0.9rem;">The Official Blog Platform of MSU's Student Publication</p>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="/uploads/logobp.jpg" alt="Builders/Pandayan Logo" class="logo-image">
+                <p>Builders/Pandayan</p>
+                <p>The Official Blog Platform of MSU's Student Publication</p>
             </div>
-            <div class="col-md-4 text-center mb-3 mb-md-0">
-                <p class="mb-0" style="font-size: 0.9rem;">&copy; 2023 Builders/Pandayan | All Rights Reserved</p>
-            </div>
-            <div class="col-md-4 text-center text-md-right">
-                <div class="social-icons">
-                    <a href="https://facebook.com" class="mx-2" target="https://web.facebook.com/TheBuildersPandayanPublication" aria-label="Facebook">
-                        <i class="fab fa-facebook"></i>
-                    </a>
-                    <a href="https://twitter.com" class="mx-2" target="_blank" aria-label="Twitter">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="https://instagram.com" class="mx-2" target="_blank" aria-label="Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="https://linkedin.com" class="mx-2" target="_blank" aria-label="LinkedIn">
-                        <i class="fab fa-linkedin"></i>
-                    </a>
-                    <a href="https://youtube.com" class="mx-2" target="_blank" aria-label="YouTube">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                </div>
+            <p>&copy; <?php echo date("Y"); ?> Builders/Pandayan. All rights reserved.</p>
+            <div class="social-links">
+                <a href="https://www.facebook.com/TheBuildersPandayanPublication" title="Facebook"><i class="fab fa-facebook"></i></a>
+                <a href="https://www.tiktok.com/@thebuildersangpandayan" title="Tiktok"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.instagram.com/builderspandayan" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.youtube.com/@BuildersPandayan" title="Youtube"><i class="fab fa-youtube"></i></a>
             </div>
         </div>
     </div>
 </footer>
-
-<style>
-    :root {
-        --brand-green: #9EFF00;
-        --dark-bg: #001a1a;
-        --sage-green: #669988;
-        --mint-green: #CCDDCC;
-    }
-
-    footer {
-        border-top: 2px solid var(--brand-green);
-    }
-
-    .footer-logo {
-        filter: drop-shadow(0 0 5px var(--brand-green));
-    }
-
-    .social-icons a {
-        color: #f0f0f0;
-        font-size: 1.2rem;
-        transition: all 0.3s ease;
-    }
-
-    .social-icons a:hover {
-        color: var(--brand-green);
-        transform: translateY(-3px);
-    }
-
-    @media (max-width: 767px) {
-        .footer-logo {
-            height: 40px;
-        }
-    }
-</style>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
 

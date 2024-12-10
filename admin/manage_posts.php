@@ -1,134 +1,336 @@
 <?php
-require_once '../includes/header.php';
-check_admin();
+require_once '../includes/config.php';
+require_once '../includes/functions.php';
 
-$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+$user_data = check_login($conn);
 
-if ($action == 'create' || $action == 'edit') {
-    $categories = get_categories();
-    
-    if ($action == 'edit') {
-        $post_id = sanitize_input($_GET['id']);
-        $post = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM posts WHERE id = $post_id"));
-    }
-    
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $title = sanitize_input($_POST['title']);
-        $content = sanitize_input($_POST['content']);
-        $category_id = sanitize_input($_POST['category_id']);
-        
-        // Handle image upload
-        $image_path = '';
-        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-            $allowed = array('jpg', 'jpeg', 'png', 'gif');
-            $filename = $_FILES['image']['name'];
-            $ext = pathinfo($filename, PATHINFO_EXTENSION);
-            if (in_array(strtolower($ext), $allowed)) {
-                $image_path = 'uploads/' . uniqid() . '.' . $ext;
-                move_uploaded_file($_FILES['image']['tmp_name'], '../' . $image_path);
-            }
-        }
-        
-        if ($action == 'create') {
-            $user_id = $_SESSION['user_id'];
-            $sql = "INSERT INTO posts (title, content, user_id, category_id, image) VALUES (?, ?, ?, ?, ?)";
-            $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "ssiis", $title, $content, $user_id, $category_id, $image_path);
-        } else {
-            if ($image_path) {
-                $sql = "UPDATE posts SET title = ?, content = ?, category_id = ?, image = ? WHERE id = ?";
-                $stmt = mysqli_prepare($conn, $sql);
-                mysqli_stmt_bind_param($stmt, "ssisi", $title, $content, $category_id, $image_path, $post_id);
-            } else {
-                $sql = "UPDATE posts SET title = ?, content = ?, category_id = ? WHERE id = ?";
-                $stmt = mysqli_prepare($conn, $sql);
-                mysqli_stmt_bind_param($stmt, "ssii", $title, $content, $category_id, $post_id);
-            }
-        }
-        
-        if (mysqli_stmt_execute($stmt)) {
-            header("Location: manage_posts.php");
-            exit();
-        }
-    }
-} elseif ($action == 'delete') {
-    $post_id = sanitize_input($_GET['id']);
-    mysqli_query($conn, "DELETE FROM posts WHERE id = $post_id");
-    header("Location: manage_posts.php");
+if ($user_data['role'] != 'admin') {
+    header("Location: ../index.php");
     exit();
 }
 
-$posts = mysqli_query($conn, "SELECT p.*, c.name as category FROM posts p JOIN categories c ON p.category_id = c.id ORDER BY p.created_at DESC");
+$query = "SELECT p.*, u.username, c.name AS category_name FROM posts p 
+          JOIN users u ON p.author_id = u.id 
+          JOIN categories c ON p.category_id = c.id 
+          ORDER BY p.created_at DESC";
+$result = $conn->query($query);
+
+$page_title = 'Manage Posts';
+include '../includes/header.php';
 ?>
 
-<h1>Manage Posts</h1>
+<style>
+    :root {
+        --primary-color: #16423C;
+        --secondary-color: #6A9C89;
+        --accent-color: #C4DAD2;
+        --background-light: #E9EFEC;
+        --background-white: #FFFFFF;
+        --text-primary: #000000;
+        --text-secondary: #333333;
+        --border-color: #C4DAD2;
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+    }
 
-<?php if ($action == 'list'): ?>
-    <a href="?action=create" class="btn btn-primary mb-3">Create New Post</a>
-    <table class="table">
+    body {
+        font-family: 'Roboto', 'Arial', sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background-color: var(--background-light);
+    }
+
+    .manage-posts-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: var(--background-white);
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .manage-posts-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--accent-color);
+    }
+
+    .manage-posts-title {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .add-post-btn {
+        background-color: var(--secondary-color);
+        color: var(--background-white);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .add-post-btn:hover {
+        background-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .message {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .success {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--success-color);
+        border: 1px solid var(--success-color);
+    }
+
+    .error {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--danger-color);
+        border: 1px solid var(--danger-color);
+    }
+
+    .posts-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.75rem;
+    }
+
+    .posts-table th,
+    .posts-table td {
+        padding: 1rem;
+        text-align: left;
+    }
+
+    .posts-table th {
+        background-color: var(--accent-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.05em;
+    }
+
+    .posts-table tr {
+        background-color: var(--background-white);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .posts-table tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .post-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-published {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--success-color);
+    }
+
+    .status-pending {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning-color);
+    }
+
+    .post-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .post-action {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .post-action-edit {
+        background-color: var(--accent-color);
+        color: var(--primary-color);
+    }
+
+    .post-action-delete {
+        background-color: var(--accent-color);
+        color: var(--primary-color);
+    }
+    .post-action-approve {
+        background-color: var(--success-color);
+        color: var(--background-white);
+    }
+
+    .post-action:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 2rem;
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+        color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .manage-posts-container {
+            padding: 1rem;
+        }
+
+        .manage-posts-title {
+            font-size: 2rem;
+        }
+
+        .posts-table {
+            font-size: 0.875rem;
+        }
+
+        .posts-table th,
+        .posts-table td {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .post-image {
+            width: 60px;
+            height: 60px;
+        }
+
+        .post-action {
+            padding: 0.4rem 0.8rem;
+        }
+    }
+</style>
+
+<div class="manage-posts-container">
+    <div class="manage-posts-header">
+        <h1 class="manage-posts-title">Manage Posts</h1>
+        <a href="add_post.php" class="add-post-btn">Add New Post</a>
+    </div>
+
+    <?php
+    if (isset($_SESSION['success_message'])) {
+        echo "<div class='message success'>" . htmlspecialchars($_SESSION['success_message']) . "</div>";
+        unset($_SESSION['success_message']);
+    }
+    if (isset($_SESSION['error_message'])) {
+        echo "<div class='message error'>" . htmlspecialchars($_SESSION['error_message']) . "</div>";
+        unset($_SESSION['error_message']);
+    }
+    ?>
+
+    <table class="posts-table">
         <thead>
             <tr>
                 <th>Image</th>
                 <th>Title</th>
+                <th>Author</th>
                 <th>Category</th>
-                <th>Created At</th>
+                <th>Status</th>
+                <th>Views</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <?php while ($post = mysqli_fetch_assoc($posts)): ?>
+            <?php while ($post = $result->fetch_assoc()): ?>
                 <tr>
                     <td>
-                        <?php if ($post['image']): ?>
-                            <img src="../<?php echo $post['image']; ?>" alt="Post thumbnail" class="img-thumbnail" style="max-width: 100px; height: auto;">
+                        <?php if (!empty($post['image'])): ?>
+                            <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="post-image">
                         <?php else: ?>
-                            <div class="text-muted">No image</div>
+                            <img src="/placeholder.svg?height=80&width=80" alt="No image" class="post-image">
                         <?php endif; ?>
                     </td>
-                    <td><?php echo $post['title']; ?></td>
-                    <td><?php echo $post['category']; ?></td>
-                    <td><?php echo $post['created_at']; ?></td>
+                    <td><?php echo htmlspecialchars($post['title']); ?></td>
+                    <td><?php echo htmlspecialchars($post['username']); ?></td>
+                    <td><?php echo htmlspecialchars($post['category_name']); ?></td>
                     <td>
-                        <a href="?action=edit&id=<?php echo $post['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
-                        <a href="?action=delete&id=<?php echo $post['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
+                        <span class="post-status <?php echo $post['status'] === 'published' ? 'status-published' : 'status-pending'; ?>">
+                            <?php echo ucfirst($post['status']); ?>
+                        </span>
+                    </td>
+                    <td><?php echo $post['views']; ?></td>
+                    <td>
+                        <div class="post-actions">
+                            <a href="edit_post.php?id=<?php echo $post['id']; ?>" class="post-action post-action-edit">Edit</a>
+                            <a href="delete_post.php?id=<?php echo $post['id']; ?>" class="post-action post-action-delete" onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
+                            <?php if ($post['status'] == 'pending'): ?>
+                                <a href="approve_post.php?id=<?php echo $post['id']; ?>" class="post-action post-action-approve">Approve</a>
+                            <?php endif; ?>
+                        </div>
                     </td>
                 </tr>
             <?php endwhile; ?>
         </tbody>
     </table>
-<?php else: ?>
-    <form method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" class="form-control" id="title" name="title" required value="<?php echo isset($post) ? $post['title'] : ''; ?>">
-        </div>
-        <div class="form-group">
-            <label for="content">Content</label>
-            <textarea class="form-control" id="content" name="content" rows="10" required><?php echo isset($post) ? $post['content'] : ''; ?></textarea>
-        </div>
-        <div class="form-group">
-            <label for="category_id">Category</label>
-            <select class="form-control" id="category_id" name="category_id" required>
-                <?php while ($category = mysqli_fetch_assoc($categories)): ?>
-                    <option value="<?php echo $category['id']; ?>" <?php echo (isset($post) && $post['category_id'] == $category['id']) ? 'selected' : ''; ?>>
-                        <?php echo $category['name']; ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="image">Image</label>
-            <input type="file" class="form-control-file" id="image" name="image">
-            <?php if (isset($post) && $post['image']): ?>
-                <div class="mt-2">
-                    <img src="../<?php echo $post['image']; ?>" alt="Current post image" class="img-thumbnail" style="max-width: 200px;">
-                </div>
-            <?php endif; ?>
-        </div>
-        <button type="submit" class="btn btn-primary">
-            <?php echo ($action == 'create') ? 'Create' : 'Update'; ?> Post
-        </button>
-    </form>
-<?php endif; ?>
 
-<?php require_once '../includes/footer.php'; ?>
+    <a href="dashboard.php" class="back-link">← Back to Dashboard</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('.posts-table');
+    const headers = table.querySelectorAll('th');
+    const tableBody = table.querySelector('tbody');
+    const rows = tableBody.querySelectorAll('tr');
+
+    headers.forEach((header, index) => {
+        header.addEventListener('click', () => {
+            const direction = header.classList.contains('sort-asc') ? 'desc' : 'asc';
+            headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+            header.classList.add(`sort-${direction}`);
+
+            const sortedRows = Array.from(rows).sort((a, b) => {
+                const aColText = a.querySelector(`td:nth-child(${index + 1})`).textContent.trim();
+                const bColText = b.querySelector(`td:nth-child(${index + 1})`).textContent.trim();
+
+                if (direction === 'asc') {
+                    return aColText.localeCompare(bColText);
+                } else {
+                    return bColText.localeCompare(aColText);
+                }
+            });
+
+            tableBody.append(...sortedRows);
+        });
+    });
+});
+</script>
+
+<?php include '../includes/footer.php'; ?>
+

@@ -4,7 +4,7 @@ require_once '../includes/functions.php';
 
 $user_data = check_login($conn);
 
-if ($user_data['role'] != 'admin') {
+if ($user_data['role'] != 'writer') {
     header("Location: ../index.php");
     exit();
 }
@@ -44,15 +44,16 @@ include '../includes/header.php';
 <style>
     :root {
         --primary-color: #16423C;
+        --primary-light: #1D5248;
         --secondary-color: #6A9C89;
-        --accent-color: #C4DAD2;
-        --background-light: #E9EFEC;
+        --text-primary: #333333;
+        --text-secondary: #666666;
+        --background-light: #F5F7FA;
         --background-white: #FFFFFF;
-        --text-primary: #000000;
-        --text-secondary: #333333;
-        --border-color: #C4DAD2;
-        --success-color: #28a745;
-        --danger-color: #dc3545;
+        --accent-color: #E9EFEC;
+        --error-color: #DC3545;
+        --success-color: #28A745;
+        --warning-color: #FFC107;
     }
 
     body {
@@ -63,28 +64,28 @@ include '../includes/header.php';
     }
 
     .categories-container {
-        max-width: 1000px;
+        max-width: 900px;
         margin: 2rem auto;
         padding: 2rem;
         background-color: var(--background-white);
         border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .categories-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        text-align: center;
         margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--accent-color);
     }
 
     .categories-title {
         font-size: 2.5rem;
         color: var(--primary-color);
-        margin: 0;
-        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .categories-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
     }
 
     .message {
@@ -102,8 +103,8 @@ include '../includes/header.php';
 
     .error {
         background-color: rgba(220, 53, 69, 0.1);
-        color: var(--danger-color);
-        border: 1px solid var(--danger-color);
+        color: var(--error-color);
+        border: 1px solid var(--error-color);
     }
 
     .add-category-form {
@@ -128,7 +129,7 @@ include '../includes/header.php';
     .form-group input[type="text"] {
         flex-grow: 1;
         padding: 0.75rem;
-        border: 2px solid var(--border-color);
+        border: 2px solid #e0e0e0;
         border-radius: 6px;
         font-size: 1rem;
         transition: border-color 0.3s ease;
@@ -136,7 +137,7 @@ include '../includes/header.php';
 
     .form-group input[type="text"]:focus {
         outline: none;
-        border-color: var(--secondary-color);
+        border-color: var(--primary-color);
     }
 
     .btn {
@@ -154,12 +155,12 @@ include '../includes/header.php';
     }
 
     .btn-primary {
-        background-color: var(--secondary-color);
-        color: var(--background-white);
+        background-color: var(--primary-color);
+        color: white;
     }
 
     .btn-primary:hover {
-        background-color: var(--primary-color);
+        background-color: var(--primary-light);
     }
 
     .categories-table {
@@ -181,18 +182,18 @@ include '../includes/header.php';
     .categories-table td {
         padding: 1rem;
         background-color: var(--background-white);
-        border-top: 1px solid var(--border-color);
-        border-bottom: 1px solid var(--border-color);
+        border-top: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
     }
 
     .categories-table tr td:first-child {
-        border-left: 1px solid var(--border-color);
+        border-left: 1px solid #e0e0e0;
         border-top-left-radius: 6px;
         border-bottom-left-radius: 6px;
     }
 
     .categories-table tr td:last-child {
-        border-right: 1px solid var(--border-color);
+        border-right: 1px solid #e0e0e0;
         border-top-right-radius: 6px;
         border-bottom-right-radius: 6px;
     }
@@ -215,7 +216,6 @@ include '../includes/header.php';
         background-color: #C4DAD2;
     }
 
-
     .btn-delete {
         background-color: #16423C;
         color: #FFFFFF;
@@ -228,15 +228,14 @@ include '../includes/header.php';
     .back-link {
         display: inline-block;
         margin-top: 2rem;
-        color: var(--secondary-color);
+        color: var(--primary-color);
         text-decoration: none;
-        font-size: 1rem;
         font-weight: 600;
         transition: color 0.3s ease;
     }
 
     .back-link:hover {
-        color: var(--primary-color);
+        color: var(--primary-light);
     }
 
     @media (max-width: 768px) {
@@ -265,6 +264,7 @@ include '../includes/header.php';
 <div class="categories-container">
     <div class="categories-header">
         <h1 class="categories-title">Manage Categories</h1>
+        <p class="categories-subtitle">Add, edit, or delete categories for your blog posts</p>
     </div>
 
     <?php if (isset($success)): ?>

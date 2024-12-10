@@ -1,338 +1,441 @@
 <?php
-require_once '../includes/header.php';
-check_admin();
+require_once '../includes/config.php';
+require_once '../includes/functions.php';
+
+$user_data = check_login($conn);
+
+if ($user_data['role'] != 'admin') {
+    header("Location: ../index.php");
+    exit();
+}
 
 // Fetch statistics
-$total_posts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM posts"))['count'];
-$total_users = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM users"))['count'];
-$total_comments = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM comments"))['count'];
+$total_posts = $conn->query("SELECT COUNT(*) FROM posts")->fetch_row()[0];
+$total_users = $conn->query("SELECT COUNT(*) FROM users")->fetch_row()[0];
+$total_comments = $conn->query("SELECT COUNT(*) FROM comments")->fetch_row()[0];
+$total_views = $conn->query("SELECT SUM(views) FROM posts")->fetch_row()[0];
+$pending_posts = $conn->query("SELECT COUNT(*) FROM posts WHERE status = 'pending'")->fetch_row()[0];
 
 // Fetch most viewed posts
-$most_viewed = mysqli_query($conn, "SELECT title, views FROM posts ORDER BY views DESC LIMIT 5");
+$most_viewed_posts = $conn->query("
+    SELECT title, views 
+    FROM posts 
+    ORDER BY views DESC 
+    LIMIT 5
+");
 
 // Fetch most commented posts
-$most_commented = mysqli_query($conn, "SELECT p.title, COUNT(c.id) as comment_count 
-                                       FROM posts p 
-                                       LEFT JOIN comments c ON p.id = c.post_id 
-                                       GROUP BY p.id 
-                                       ORDER BY comment_count DESC 
-                                       LIMIT 5");
+$most_commented_posts = $conn->query("
+    SELECT p.title, COUNT(c.id) as comment_count 
+    FROM posts p 
+    LEFT JOIN comments c ON p.id = c.post_id 
+    GROUP BY p.id 
+    ORDER BY comment_count DESC 
+    LIMIT 5
+");
 
 // Fetch posts per category
-$posts_per_category = mysqli_query($conn, "SELECT c.name, COUNT(p.id) as post_count 
-                                           FROM categories c
-                                           LEFT JOIN posts p ON c.id = p.category_id
-                                           GROUP BY c.id
-                                           ORDER BY post_count DESC");
+$posts_per_category = $conn->query("
+    SELECT c.name, COUNT(p.id) as post_count 
+    FROM categories c 
+    LEFT JOIN posts p ON c.id = p.category_id 
+    GROUP BY c.id
+");
+
+$page_title = 'Admin Dashboard';
+include '../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Builders/Pandayan</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --dark-forest-green: #004040;
-            --sage-green: #669988;
-            --mint-green: #CCDDCC;
-            --white: #FFFFFF;
-        }
+<style>
+    :root {
+        --primary-color: #16423C;
+        --secondary-color: #6A9C89;
+        --text-primary: #000000;
+        --text-secondary: #333333;
+        --background-light: #E9EFEC;
+        --background-white: #FFFFFF;
+        --accent-color: #C4DAD2;
+    }
 
-        body {
-            background-color: var(--mint-green);
-            color: var(--dark-forest-green);
-            font-family: 'Montserrat', sans-serif;
-        }
+    body {
+        font-family: 'Roboto', 'Arial', sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background-color: var(--background-light);
+    }
 
-        .dashboard-container {
-            padding: 2rem;
-        }
+    .dashboard-container {
+        display: flex;
+        min-height: calc(100vh - 80px);
+    }
 
-        .dashboard-card {
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 64, 64, 0.1);
-            margin-bottom: 1.5rem;
-            padding: 1.5rem;
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-        }
+    .sidebar {
+        width: 250px;
+        background-color: var(--primary-color);
+        padding: 2rem 0;
+        position: fixed;
+        height: calc(100vh - 80px);
+        overflow-y: auto;
+    }
 
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 64, 64, 0.15);
-        }
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
 
-        .stats-card {
-            text-align: center;
-            padding: 1.5rem;
-        }
+    .sidebar-menu li {
+        margin-bottom: 0.5rem;
+    }
 
-        .stats-card h5 {
-            color: var(--sage-green);
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .sidebar-menu a {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        color: var(--background-white);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+    }
 
-        .stats-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--dark-forest-green);
-        }
+    .sidebar-menu a:hover,
+    .sidebar-menu a.active {
+        background-color: var(--secondary-color);
+        border-left-color: var(--accent-color);
+    }
 
-        .chart-container {
+    .sidebar-menu i {
+        margin-right: 0.75rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    .main-content {
+        flex: 1;
+        margin-left: 250px;
+        padding: 2rem;
+        background-color: var(--background-light);
+    }
+
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-title {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background-color: var(--background-white);
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-title {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background-color: var(--accent-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-card {
+        background-color: var(--background-white);
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-title {
+        font-size: 1.25rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+
+    .donut-chart-container {
+        height: 400px;
+        position: relative;
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 100%;
+            height: auto;
             position: relative;
-            height: 400px;
-            margin: 1rem 0;
         }
 
-        h1, h5 {
-            color: var(--dark-forest-green);
+        .main-content {
+            margin-left: 0;
         }
 
-        .btn-primary {
-            background-color: var(--dark-forest-green);
-            border-color: var(--dark-forest-green);
+        .charts-grid {
+            grid-template-columns: 1fr;
         }
+    }
+</style>
 
-        .btn-primary:hover {
-            background-color: var(--sage-green);
-            border-color: var(--sage-green);
-        }
-    </style>
-</head>
-<body>
-    <div class="dashboard-container">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="mb-4">Admin Dashboard</h1>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li>
+                <a href="dashboard.php" class="active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="manage_posts.php">
+                    <i class="fas fa-file-alt"></i>
+                    Manage Posts
+                </a>
+            </li>
+            <li>
+                <a href="add_post.php">
+                    <i class="fas fa-plus"></i>
+                    Add New Post
+                </a>
+            </li>
+            <li>
+                <a href="manage_categories.php">
+                    <i class="fas fa-folder"></i>
+                    Manage Categories
+                </a>
+            </li>
+            <li>
+                <a href="manage_users.php">
+                    <i class="fas fa-users"></i>
+                    Manage Users
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Admin Dashboard</h1>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-title">Total Posts</div>
+                <div class="stat-value"><?php echo number_format($total_posts); ?></div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-title">Total Users</div>
+                <div class="stat-value"><?php echo number_format($total_users); ?></div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="stat-title">Total Comments</div>
+                <div class="stat-value"><?php echo number_format($total_comments); ?></div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stat-title">Total Views</div>
+                <div class="stat-value"><?php echo number_format($total_views); ?></div>
             </div>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="dashboard-card stats-card">
-                    <h5>Total Posts</h5>
-                    <div class="stats-number"><?php echo htmlspecialchars($total_posts); ?></div>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2 class="chart-title">Most Viewed Posts</h2>
+                <div class="chart-container">
+                    <canvas id="viewsChart"></canvas>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="dashboard-card stats-card">
-                    <h5>Total Users</h5>
-                    <div class="stats-number"><?php echo htmlspecialchars($total_users); ?></div>
+
+            <div class="chart-card">
+                <h2 class="chart-title">Most Commented Posts</h2>
+                <div class="chart-container">
+                    <canvas id="commentsChart"></canvas>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="dashboard-card stats-card">
-                    <h5>Total Comments</h5>
-                    <div class="stats-number"><?php echo htmlspecialchars($total_comments); ?></div>
+
+            <div class="chart-card">
+                <h2 class="chart-title">Posts per Category</h2>
+                <div class="donut-chart-container">
+                    <canvas id="categoryChart"></canvas>
                 </div>
             </div>
         </div>
+    </main>
+</div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="dashboard-card">
-                    <h5>Most Viewed Posts</h5>
-                    <div class="chart-container">
-                        <canvas id="viewsChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="dashboard-card">
-                    <h5>Most Commented Posts</h5>
-                    <div class="chart-container">
-                        <canvas id="commentsChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="dashboard-card">
-                    <h5>Posts per Category</h5>
-                    <div class="chart-container">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    // Shared chart options
-    const sharedOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top',
-                labels: {
-                    padding: 20,
-                    font: {
-                        size: 12,
-                        family: "'Montserrat', sans-serif"
-                    },
-                    color: '#004040'
-                }
-            }
-        }
-    };
-
-    // Color palette
-    const colors = [
-        'rgba(0, 64, 64, 0.7)',   // Dark Forest Green
-        'rgba(102, 153, 136, 0.7)', // Sage Green
-        'rgba(204, 221, 204, 0.7)', // Mint Green
-        'rgba(0, 64, 64, 0.5)',   // Dark Forest Green (lighter)
-        'rgba(102, 153, 136, 0.5)', // Sage Green (lighter)
-    ];
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
     // Most Viewed Posts Chart
-    new Chart(document.getElementById('viewsChart').getContext('2d'), {
+    const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+    new Chart(viewsCtx, {
         type: 'bar',
         data: {
-            labels: [<?php
-                $titles = [];
-                $views = [];
-                while ($row = mysqli_fetch_assoc($most_viewed)) {
-                    $titles[] = "'" . addslashes(substr($row['title'], 0, 30)) . "'";
-                    $views[] = $row['views'];
+            labels: [<?php 
+                while($post = $most_viewed_posts->fetch_assoc()) {
+                    echo "'" . addslashes($post['title']) . "',";
                 }
-                echo implode(',', $titles);
             ?>],
             datasets: [{
                 label: 'Views',
-                data: [<?php echo implode(',', $views); ?>],
-                backgroundColor: colors[0],
-                borderColor: colors[0],
-                borderWidth: 1
+                data: [<?php 
+                    $most_viewed_posts->data_seek(0);
+                    while($post = $most_viewed_posts->fetch_assoc()) {
+                        echo $post['views'] . ",";
+                    }
+                ?>],
+                backgroundColor: '#6A9C89',
+                borderRadius: 5,
             }]
         },
         options: {
-            ...sharedOptions,
-            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
             scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 64, 64, 0.1)'
-                    },
-                    ticks: {
-                        color: '#004040'
-                    }
-                },
                 y: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        color: '#004040'
-                    }
+                    beginAtZero: true
                 }
             }
         }
     });
 
     // Most Commented Posts Chart
-    new Chart(document.getElementById('commentsChart').getContext('2d'), {
+    const commentsCtx = document.getElementById('commentsChart').getContext('2d');
+    new Chart(commentsCtx, {
         type: 'bar',
         data: {
-            labels: [<?php
-                $titles = [];
-                $comments = [];
-                while ($row = mysqli_fetch_assoc($most_commented)) {
-                    $titles[] = "'" . addslashes(substr($row['title'], 0, 30)) . "'";
-                    $comments[] = $row['comment_count'];
+            labels: [<?php 
+                while($post = $most_commented_posts->fetch_assoc()) {
+                    echo "'" . addslashes($post['title']) . "',";
                 }
-                echo implode(',', $titles);
             ?>],
             datasets: [{
                 label: 'Comments',
-                data: [<?php echo implode(',', $comments); ?>],
-                backgroundColor: colors[1],
-                borderColor: colors[1],
-                borderWidth: 1
+                data: [<?php 
+                    $most_commented_posts->data_seek(0);
+                    while($post = $most_commented_posts->fetch_assoc()) {
+                        echo $post['comment_count'] . ",";
+                    }
+                ?>],
+                backgroundColor: '#6A9C89',
+                borderRadius: 5,
             }]
         },
         options: {
-            ...sharedOptions,
-            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
             scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 64, 64, 0.1)'
-                    },
-                    ticks: {
-                        color: '#004040'
-                    }
-                },
                 y: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        color: '#004040'
-                    }
+                    beginAtZero: true
                 }
             }
         }
     });
 
     // Posts per Category Chart
-    new Chart(document.getElementById('categoryChart').getContext('2d'), {
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
         type: 'doughnut',
         data: {
-            labels: [<?php
-                $categories = [];
-                $post_counts = [];
-                while ($row = mysqli_fetch_assoc($posts_per_category)) {
-                    $categories[] = "'" . addslashes($row['name']) . "'";
-                    $post_counts[] = $row['post_count'];
+            labels: [<?php 
+                while($category = $posts_per_category->fetch_assoc()) {
+                    echo "'" . addslashes($category['name']) . "',";
                 }
-                echo implode(',', $categories);
             ?>],
             datasets: [{
-                data: [<?php echo implode(',', $post_counts); ?>],
-                backgroundColor: colors,
-                borderColor: colors.map(color => color.replace('0.7', '1')),
-                borderWidth: 1
+                data: [<?php 
+                    $posts_per_category->data_seek(0);
+                    while($category = $posts_per_category->fetch_assoc()) {
+                        echo $category['post_count'] . ",";
+                    }
+                ?>],
+                backgroundColor: [
+                    '#16423C',
+                    '#6A9C89',
+                    '#C4DAD2',
+                    '#E9EFEC',
+                    '#000000'
+                ]
             }]
         },
         options: {
-            ...sharedOptions,
-            cutout: '60%',
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 12,
-                            family: "'Montserrat', sans-serif"
-                        },
-                        color: '#004040'
-                    }
+                    position: 'right'
                 }
             }
         }
     });
-    </script>
+</script>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
-
-<?php require_once '../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
 

@@ -1,130 +1,152 @@
-<?php
-session_start();
-require_once 'config.php';
-require_once 'functions.php';
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Builders/Pandayan</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Google Font for clean typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom Styles -->
+    <title><?php echo $page_title ?? 'Blog'; ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #16423C;
+            --text-primary: #000000;
+            --text-secondary: #6A9C89;
+            --background-light: #E9EFEC;
+            --background-white: #C4DAD2;
+            --spacing-unit: 1rem;
+        }
+
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Roboto', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-white);
             margin: 0;
             padding: 0;
         }
 
-        nav {
-            background-color: #000; 
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            border-bottom: 2px solid #fff;
-        }
-
-        .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 500;
-            color: var(--brand-green) !important;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .navbar-brand img {
-                height: 30px;
-            }
-
-        .navbar-brand img {
-            height: 40px;
-            width: auto;
-        }
-
-        .navbar-nav .nav-link {
-            color: #ddd !important;
-            font-size: 1.1rem;
-            margin: 0 15px;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-nav .nav-link:hover {
-            color: var(--brand-green) !important;
-            border-bottom: 2px solid var(--brand-green);
-        }
-
-        .navbar-toggler-icon {
-            background-color: #fff;
+        header {
+            background-color: #16423C;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .container {
-            margin-top: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-unit);
         }
 
-        .navbar-nav .nav-item.active .nav-link {
-            font-weight: 600;
-            color: var(--brand-green) !important;
-            border-bottom: 2px solid var(--brand-green);
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+            padding: 0 2rem;
         }
 
-        /* Adjusting for smaller screens */
-        @media (max-width: 767px) {
-            .navbar-nav .nav-link {
-                margin-right: 10px;
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--background-light);
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+
+        nav ul li a:hover {
+            color: #16423C;
+            background-color: var(--background-light);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--background-light);
+            text-decoration: none;
+        }
+
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .auth-buttons a {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            color: var(--background-light);
+        }
+
+        .auth-buttons a:hover {
+            color: #16423C;
+            background-color: var(--background-light);
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                height: auto;
+                padding: var(--spacing-unit) 0;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+                gap: calc(var(--spacing-unit) * 0.5);
+            }
+
+            .auth-buttons {
+                margin-top: var(--spacing-unit);
             }
         }
     </style>
 </head>
 <body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/index.php" class="logo">Builders/Pandayan</a>
+                <ul>
+                    <li><a href="/index.php">Home</a></li>
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <?php if ($_SESSION['user_role'] == 'admin'): ?>
+                            <li><a href="/admin/dashboard.php">Admin Dashboard</a></li>
+                        <?php elseif ($_SESSION['user_role'] == 'writer'): ?>
+                            <li><a href="/writer/dashboard.php">Writer Dashboard</a></li>
+                        <?php endif; ?>
+                        <li><a href="/user/profile.php">Profile</a></li>
+                        <li><a href="/logout.php">Logout</a></li>
+                    <?php else: ?>
+                        <div class="auth-buttons">
+                            <a href="/login.php">Login</a>
+                            <a href="/register.php">Register</a>
+                        </div>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <!-- Main content will be inserted here -->
+    </main>
 
-<nav class="navbar navbar-expand-lg navbar-dark">
-    <a class="navbar-brand" href="/index.php"><img src="/uploads/logobp.jpg" alt="Logo">Builders/Pandayan </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="/index.php">Home</a>
-            </li>
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <?php if (is_admin()): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/dashboard.php">Admin Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/manage_posts.php">Manage Posts</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/manage_categories.php">Manage Categories</a>
-                    </li>
-                <?php endif; ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout.php">Logout</a>
-                </li>
-            <?php else: ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="/login.php">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/register.php">Register</a>
-                </li>
-            <?php endif; ?>
-        </ul>
-    </div>
-</nav>
 
-<div class="container">
-    <!-- Content goes here -->
-</div>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+
